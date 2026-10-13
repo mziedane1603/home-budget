@@ -1,6 +1,6 @@
 {
-  "name": "دفتر ميزانية المنزل",
-  "short_name": "الميزانية",
+  "name": "ZAIN",
+  "short_name": "ZAIN",
   "description": "إدارة إيرادات ومصروفات الأسرة",
   "lang": "ar",
   "dir": "rtl",
@@ -9,7 +9,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#EAF3F8",
-  "theme_color": "#1F3A4D",
+  "theme_color": "#176B5B",
   "icons": [
     {
       "src": "icon-192.png",

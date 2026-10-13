@@ -1,5 +1,5 @@
 // Service worker: بيخلّي التطبيق يفتح حتى لو النت ضعيف. البيانات نفسها بتيجي من Firebase.
-const CACHE = 'budget-shell-v1';
+const CACHE = 'budget-shell-v3';
 const SHELL = ['./', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
