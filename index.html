@@ -138,14 +138,71 @@
   .kpi.acct-bank{background:linear-gradient(135deg,var(--slate),var(--slate-light));}
   .kpi.acct-savings{background:linear-gradient(135deg,var(--gold),var(--gold-light));}
   .kpi-hero{
-    border-radius:22px;padding:28px 24px;color:var(--ink);position:relative;overflow:hidden;
-    box-shadow:0 16px 36px rgba(31,58,77,.2);background:var(--paper);
+    border-radius:20px;padding:14px 18px;color:var(--ink);position:relative;overflow:hidden;
+    box-shadow:0 12px 28px rgba(31,58,77,.18);background:var(--paper);
     border:1px solid var(--line);
-    margin:-38px 0 18px;text-align:center;
+    margin:-38px 0 12px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
   }
-  .kpi-hero .lbl{font-size:13px;color:var(--espresso-light);}
-  .kpi-hero .val{font-family:'El Messiri',sans-serif;font-size:38px;font-weight:800;color:var(--ink);margin:10px 0 18px;}
-  .kpi-hero .btn{width:auto;padding:11px 26px;display:inline-flex;}
+  .kpi-hero .lbl{font-size:12.5px;color:var(--espresso-light);}
+  .kpi-hero .val{font-family:'El Messiri',sans-serif;font-size:27px;font-weight:800;color:var(--ink);margin:2px 0 0;}
+  .kpi-hero .btn{width:auto;padding:10px 16px;min-height:42px;display:inline-flex;flex-shrink:0;}
+
+  /* COMPACT ACCOUNTS STRIP */
+  .acct-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+  .acct-tile{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:9px 10px;box-shadow:var(--shadow);min-width:0;
+  }
+  .acct-head{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+  .acct-ic{
+    width:24px;height:24px;border-radius:8px;color:#fff;font-size:12px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .acct-tile.cash .acct-ic{background:linear-gradient(135deg,var(--cinnamon),var(--cinnamon-light));}
+  .acct-tile.bank .acct-ic{background:linear-gradient(135deg,var(--slate),var(--slate-light));}
+  .acct-tile.savings .acct-ic{background:linear-gradient(135deg,var(--gold),var(--gold-light));}
+  .acct-lbl{font-size:11.5px;color:var(--espresso-light);}
+  .acct-val{font-family:'El Messiri',sans-serif;font-weight:700;font-size:13.5px;color:var(--ink);overflow-wrap:anywhere;line-height:1.3;}
+
+  /* INCOME / EXPENSE / NET SUMMARY */
+  .sum-card{padding:12px 14px;}
+  .sum-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;}
+  .sum-lbl{font-size:11.5px;color:var(--espresso-light);margin-bottom:2px;}
+  .sum-val{font-family:'El Messiri',sans-serif;font-weight:700;font-size:14px;color:var(--ink);overflow-wrap:anywhere;}
+  .sum-val.pos{color:var(--pine);}
+  .sum-val.neg{color:var(--burgundy);}
+  .sum-card .split-bar{margin-top:10px;}
+  .more-details{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px;}
+  .more-details summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--cinnamon);list-style:none;}
+  .more-details summary::-webkit-details-marker{display:none;}
+  .more-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+  .more-grid div{background:var(--cream);border-radius:10px;padding:8px 10px;font-size:11.5px;color:var(--espresso-light);}
+  .more-grid b{display:block;font-family:'El Messiri',sans-serif;font-size:14px;color:var(--ink);margin-top:2px;}
+
+  /* CATEGORY DRILL-DOWN (main -> sub) */
+  .cat-total{font-size:12.5px;color:var(--espresso-light);margin:2px 0 8px;}
+  .cat-total b{font-family:'El Messiri',sans-serif;font-size:16px;color:var(--burgundy);}
+  .cat-item{border-bottom:1px solid var(--cream-dark);}
+  .cat-item:last-child{border-bottom:none;}
+  .cat-item>summary{list-style:none;cursor:pointer;padding:10px 2px;}
+  .cat-item>summary::-webkit-details-marker{display:none;}
+  .cat-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:13.5px;}
+  .cat-name{font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;min-width:0;}
+  .cat-name .chev{font-size:10px;color:var(--espresso-light);transition:transform .15s;flex-shrink:0;}
+  .cat-item[open] .chev{transform:rotate(-90deg);}
+  .cat-amt{font-family:'El Messiri',sans-serif;font-weight:700;color:var(--burgundy);white-space:nowrap;}
+  .cat-amt small{font-family:'Cairo',sans-serif;font-weight:600;color:var(--espresso-light);font-size:11px;margin-inline-start:4px;}
+  .cat-bar{height:6px;border-radius:4px;background:var(--cream-dark);overflow:hidden;}
+  .cat-bar>div{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cinnamon),var(--cinnamon-light));}
+  .cat-subs{padding:2px 0 12px;margin-inline-start:14px;border-inline-start:2px solid var(--cream-dark);padding-inline-start:12px;}
+  .cat-sub{padding:6px 0;}
+  .cat-sub-top{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;margin-bottom:4px;}
+  .cat-sub-name{color:var(--ink);}
+  .cat-sub-amt{font-family:'El Messiri',sans-serif;font-weight:700;color:var(--ink);white-space:nowrap;}
+  .cat-sub-amt small{font-family:'Cairo',sans-serif;color:var(--espresso-light);font-weight:600;font-size:11px;margin-inline-start:4px;}
+  .cat-sub .cat-bar{height:4px;}
+  .cat-sub .cat-bar>div{background:linear-gradient(90deg,var(--burgundy),var(--burgundy-light));}
 
   /* MINI GRID (compact stat tiles, banking-app style) */
   .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
@@ -540,57 +597,50 @@
   <!-- ================= DASHBOARD ================= -->
   <section class="view active" id="view-dashboard">
     <div class="kpi-hero">
-      <div class="lbl">💰 الإجمالي الكلي</div>
-      <div class="val" id="kpiCurrent">0</div>
-      <button class="btn btn-primary" onclick="document.querySelector('nav button[data-view=expense]').click()">➕ إضافة حركة</button>
+      <div>
+        <div class="lbl">💰 الإجمالي الكلي</div>
+        <div class="val" id="kpiCurrent">0</div>
+      </div>
+      <button class="btn btn-primary" onclick="document.querySelector('nav button[data-view=expense]').click()">➕ حركة</button>
     </div>
 
-    <div class="mini-grid">
-      <div class="mini-card">
-        <div class="mini-icon cash">💵</div>
-        <div class="mini-label">نقدي</div>
-        <div class="mini-value" id="kpiCash">0</div>
+    <div class="acct-strip">
+      <div class="acct-tile cash">
+        <div class="acct-head"><span class="acct-ic">💵</span><span class="acct-lbl">نقدي</span></div>
+        <div class="acct-val" id="kpiCash">0</div>
       </div>
-      <div class="mini-card">
-        <div class="mini-icon bank">🏦</div>
-        <div class="mini-label">بنك</div>
-        <div class="mini-value" id="kpiBank">0</div>
+      <div class="acct-tile bank">
+        <div class="acct-head"><span class="acct-ic">🏦</span><span class="acct-lbl">بنك</span></div>
+        <div class="acct-val" id="kpiBank">0</div>
       </div>
-      <div class="mini-card">
-        <div class="mini-icon savings">🎯</div>
-        <div class="mini-label">ادخار</div>
-        <div class="mini-value" id="kpiSavings">0</div>
+      <div class="acct-tile savings">
+        <div class="acct-head"><span class="acct-ic">🎯</span><span class="acct-lbl">ادخار</span></div>
+        <div class="acct-val" id="kpiSavings">0</div>
       </div>
-      <div class="mini-card">
-        <div class="mini-icon expense">💳</div>
-        <div class="mini-label">الديون</div>
-        <div class="mini-value" id="kpiDebts">0</div>
+    </div>
+
+    <div class="card sum-card">
+      <div class="sum-row">
+        <div><div class="sum-lbl">📈 الإيرادات</div><div class="sum-val pos" id="kpiIncome">0</div></div>
+        <div><div class="sum-lbl">📉 المصروفات</div><div class="sum-val neg" id="kpiExpense">0</div></div>
+        <div><div class="sum-lbl">⚖️ الصافي</div><div class="sum-val" id="kpiNet">0</div></div>
       </div>
-      <div class="mini-card">
-        <div class="mini-icon net">🧮</div>
-        <div class="mini-label">صافي الرصيد الافتتاحي</div>
-        <div class="mini-value" id="kpiOpeningNet">0</div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-icon net">⚖️</div>
-        <div class="mini-label">الصافي</div>
-        <div class="mini-value" id="kpiNet">0</div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-icon income">📈</div>
-        <div class="mini-label">إجمالي الإيرادات</div>
-        <div class="mini-value" id="kpiIncome">0</div>
-      </div>
-      <div class="mini-card">
-        <div class="mini-icon expense">📉</div>
-        <div class="mini-label">إجمالي المصروفات</div>
-        <div class="mini-value" id="kpiExpense">0</div>
-      </div>
+      <div class="split-bar"><div class="inc" id="splitIncBar"></div><div class="exp" id="splitExpBar"></div></div>
+      <details class="more-details">
+        <summary>تفاصيل إضافية ▾</summary>
+        <div class="more-grid">
+          <div>💳 الديون<b id="kpiDebts">0</b></div>
+          <div>🧮 صافي الرصيد الافتتاحي<b id="kpiOpeningNet">0</b></div>
+        </div>
+      </details>
     </div>
 
     <div class="card">
-      <h2 class="section-title" style="font-size:16px">توزيع الإيرادات والمصروفات</h2>
-      <div class="split-bar"><div class="inc" id="splitIncBar"></div><div class="exp" id="splitExpBar"></div></div>
+      <h2 class="section-title" style="font-size:16px">🏆 المصروفات حسب البند</h2>
+      <p class="section-sub" style="margin-bottom:10px">اضغط على أي بند علشان تشوف البنود الفرعية بتاعته</p>
+      <div class="chip-row" id="dashPeriodChips"></div>
+      <div class="cat-total" id="catTotalLine"></div>
+      <div id="categoryDrill"></div>
     </div>
 
     <div class="card">
@@ -598,17 +648,10 @@
       <div class="insights-grid" id="insightsGrid"></div>
     </div>
 
-    <div class="grid grid-2">
-      <div class="card">
-        <h2 class="section-title" style="font-size:16px">🏆 المصروفات حسب البند</h2>
-        <div class="chart-box"><canvas id="chartByCategory"></canvas></div>
-        <div class="leaderboard" id="categoryLeaderboard"></div>
-      </div>
-      <div class="card">
-        <h2 class="section-title" style="font-size:16px">🏆 المصروفات حسب المسؤول</h2>
-        <div class="chart-box"><canvas id="chartByMember"></canvas></div>
-        <div class="leaderboard" id="memberLeaderboard"></div>
-      </div>
+    <div class="card">
+      <h2 class="section-title" style="font-size:16px">🏆 المصروفات حسب المسؤول</h2>
+      <div class="chart-box"><canvas id="chartByMember"></canvas></div>
+      <div class="leaderboard" id="memberLeaderboard"></div>
     </div>
     <div class="card">
       <h2 class="section-title" style="font-size:16px">الإيرادات والمصروفات شهريًا</h2>
@@ -2636,24 +2679,75 @@ function renderLeaderboard(containerId, map){
   }).join('');
 }
 
+/* ---- Category drill-down on the dashboard (main -> sub) ---- */
+let dashPeriod = 'thisMonth';
+const dashOpenCats = new Set();
+
+// Month key built from LOCAL date parts (toISOString() is UTC and can shift the month)
+function localMonthKey(offset){
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function setDashPeriod(p){ dashPeriod = p; renderCategoryChart(); }
+function toggleCatOpen(id, open){ if(open) dashOpenCats.add(id); else dashOpenCats.delete(id); }
+
 function renderCategoryChart(){
-  const map = {};
-  data.expenseTx.forEach(t=>{
+  const chipsEl = document.getElementById('dashPeriodChips');
+  const drillEl = document.getElementById('categoryDrill');
+  const totalEl = document.getElementById('catTotalLine');
+  if(!chipsEl || !drillEl || !totalEl) return;
+
+  const periods = [['thisMonth','هذا الشهر'], ['lastMonth','الشهر اللي فات'], ['all','كل الفترات']];
+  chipsEl.innerHTML = periods.map(([id, label])=>
+    `<button type="button" class="chip ${id===dashPeriod?'active':''}" onclick="setDashPeriod('${id}')">${label}</button>`
+  ).join('');
+
+  const key = dashPeriod==='thisMonth' ? localMonthKey(0) : (dashPeriod==='lastMonth' ? localMonthKey(-1) : null);
+  const txs = data.expenseTx.filter(t=> !key || (t.date && t.date.slice(0,7)===key));
+
+  const groups = {};
+  let grand = 0;
+  txs.forEach(t=>{
+    const amt = Number(t.amount||0);
     const main = data.mainExpenses.find(m=>m.id===t.mainId);
-    const name = main? main.name : 'غير محدد';
-    map[name] = (map[name]||0) + Number(t.amount||0);
+    const gid = main ? main.id : '_none';
+    const g = groups[gid] || (groups[gid] = {id:gid, name: main ? main.name : 'غير محدد', total:0, subs:{}});
+    const sub = main ? (main.subs||[]).find(s=>s.id===t.subId) : null;
+    const sid = sub ? sub.id : '_nosub';
+    const s = g.subs[sid] || (g.subs[sid] = {name: sub ? sub.name : 'بدون بند فرعي', total:0});
+    g.total += amt; s.total += amt; grand += amt;
   });
-  const labels = Object.keys(map);
-  const values = Object.values(map);
-  renderLeaderboard('categoryLeaderboard', map);
-  if(charts.cat) charts.cat.destroy();
-  const ctx = document.getElementById('chartByCategory');
-  if(labels.length===0){ ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height); return; }
-  charts.cat = new Chart(ctx, {
-    type:'doughnut',
-    data:{labels, datasets:[{data:values, backgroundColor: palette, borderColor:'#F7FBFD', borderWidth:2}]},
-    options:{plugins:{legend:{position:'bottom', labels:{font:{family:'Cairo'}, boxWidth:14, padding:12}}}, cutout:'62%'}
-  });
+
+  totalEl.innerHTML = `إجمالي المصروفات في الفترة: <b>${fmt(grand)}</b>`;
+
+  const list = Object.values(groups).sort((a,b)=>b.total-a.total);
+  if(!list.length){
+    drillEl.innerHTML = `<div class="empty-state" style="padding:14px 0;">لا توجد مصروفات في الفترة دي</div>`;
+    return;
+  }
+  const max = list[0].total || 1;
+  drillEl.innerHTML = list.map(g=>{
+    const share = grand>0 ? Math.round((g.total/grand)*100) : 0;
+    const subs = Object.values(g.subs).sort((a,b)=>b.total-a.total);
+    const subsHtml = subs.map(s=>{
+      const sp = g.total>0 ? Math.round((s.total/g.total)*100) : 0;
+      return `<div class="cat-sub">
+          <div class="cat-sub-top"><span class="cat-sub-name">${escapeHtml(s.name)}</span><span class="cat-sub-amt">${fmt(s.total)}<small>${sp}%</small></span></div>
+          <div class="cat-bar"><div style="width:${sp}%"></div></div>
+        </div>`;
+    }).join('');
+    return `<details class="cat-item" ${dashOpenCats.has(g.id)?'open':''} ontoggle="toggleCatOpen('${g.id}', this.open)">
+        <summary>
+          <div class="cat-top">
+            <span class="cat-name"><span class="chev">◀</span>${escapeHtml(g.name)}</span>
+            <span class="cat-amt">${fmt(g.total)}<small>${share}%</small></span>
+          </div>
+          <div class="cat-bar"><div style="width:${Math.round((g.total/max)*100)}%"></div></div>
+        </summary>
+        <div class="cat-subs">${subsHtml}</div>
+      </details>`;
+  }).join('');
 }
 
 function renderMemberChart(){
@@ -3298,7 +3392,8 @@ Object.assign(window, {
   updateOpeningNetPreview, renderCompare, onCmpTypeChange, onCmpItemChange,
   renderBudget, setBudget, fillBudgetFromAvg,
   openPayModal, closePayModal, savePayment, removePayment, renderDebtReport, printDebtReport,
-  exportBackup, importBackup, resetAll
+  exportBackup, importBackup, resetAll,
+  setDashPeriod, toggleCatOpen
 });
 </script>
 <script>
