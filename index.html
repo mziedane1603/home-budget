@@ -572,6 +572,14 @@ header{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top)}
 .adv{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;margin-bottom:10px;background:var(--paper);border:1px solid var(--line);border-right:5px solid var(--slate-light);border-radius:14px}
 .adv .ic{font-size:22px}.adv b{display:block;font-size:14px;color:var(--espresso)}.adv p{margin:3px 0 0;font-size:13px;line-height:1.7;color:var(--ink)}
 .adv.bad{border-right-color:var(--danger);background:#FBF1F4}.adv.warn{border-right-color:#C9972B;background:#FEF9EC}.adv.good{border-right-color:var(--pine);background:#EEF8F5}
+
+.form-toggle{display:none;margin-bottom:12px}
+@media(max-width:640px){
+ .form-toggle{display:block}
+ .fcard{display:none}.fcard.open{display:block}
+ .fcard{padding:12px}.fcard .form-row{gap:8px}.fcard .field{margin-bottom:0}
+ .fcard label{font-size:11.5px;margin-bottom:3px}.fcard input,.fcard select{padding:9px 10px;font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -756,7 +764,8 @@ header{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top)}
     <h2 class="section-title">💵 حركة الإيرادات</h2>
     <p class="section-sub">تسجيل ومتابعة إيرادات المنزل</p>
 
-    <div class="card">
+    <button class="btn btn-primary btn-block form-toggle" id="incToggle" onclick="toggleForm('inc')">➕ إضافة إيراد</button>
+    <div class="card fcard" id="incForm">
       <div class="form-row">
         <div class="field"><label>التاريخ</label><input type="date" id="incDate"></div>
         <div class="field"><label>المبلغ</label><input type="number" id="incAmount" placeholder="0"></div>
@@ -801,7 +810,8 @@ header{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top)}
     <h2 class="section-title">🧾 حركة المصروفات</h2>
     <p class="section-sub">تسجيل ومتابعة مصروفات المنزل</p>
 
-    <div class="card">
+    <button class="btn btn-primary btn-block form-toggle" id="expToggle" onclick="toggleForm('exp')">➕ إضافة مصروف</button>
+    <div class="card fcard" id="expForm">
       <div class="form-row">
         <div class="field"><label>التاريخ</label><input type="date" id="expDate"></div>
         <div class="field"><label>المبلغ</label><input type="number" id="expAmount" placeholder="0"></div>
@@ -1262,7 +1272,7 @@ header{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top)}
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<button id="fab" onclick="go('expense')" aria-label="إضافة مصروف">＋</button>
+<button id="fab" onclick="go('expense',true)" aria-label="إضافة مصروف">＋</button>
 <div id="appNav"></div>
 
 <script type="module">
@@ -3532,8 +3542,22 @@ Object.assign(window, {
   renderBudget, setBudget, fillBudgetFromAvg,
   openPayModal, closePayModal, savePayment, removePayment, renderDebtReport, printDebtReport,
   exportBackup, importBackup, resetAll,
-  setDashPeriod, toggleCatOpen, go, localISO
+  setDashPeriod, toggleCatOpen, go, localISO, toggleForm
 });
+/* ===== collapsible add-forms on mobile ===== */
+const FORMS={inc:['إضافة إيراد','incAmount'],exp:['إضافة مصروف','expAmount']};
+function toggleForm(k,force){
+  const f=document.getElementById(k+'Form'), open=force===undefined?!f.classList.contains('open'):force;
+  f.classList.toggle('open',open);
+  document.getElementById(k+'Toggle').textContent=open?'✖ إغلاق النموذج':'➕ '+FORMS[k][0];
+  if(open){f.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+{
+  const wrap=(name,k,reopen)=>{const o=window[name];window[name]=function(){const r=o.apply(this,arguments); if(reopen) toggleForm(k,true); else if(document.getElementById(FORMS[k][1]).value==='') toggleForm(k,false); return r;};};
+  wrap('editIncome','inc',true); wrap('editExpense','exp',true); wrap('addIncome','inc',false); wrap('addExpense','exp',false);
+  const g=window.go; window.go=function(v,open){g(v); if(open) toggleForm(v==='income'?'inc':'exp',true);};
+}
+
 </script>
 <script>
 if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
