@@ -580,6 +580,30 @@ header{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top)}
  .fcard{padding:12px}.fcard .form-row{gap:8px}.fcard .field{margin-bottom:0}
  .fcard label{font-size:11.5px;margin-bottom:3px}.fcard input,.fcard select{padding:9px 10px;font-size:14px}
 }
+
+/* ===== Compact mobile ===== */
+@media(max-width:640px){
+ body{font-size:14px}
+ header{padding:calc(8px + env(safe-area-inset-top)) 12px 10px}
+ .header-top{flex-wrap:nowrap;gap:8px;margin-bottom:0}
+ .brand{gap:8px;min-width:0}.brand .mark{width:38px!important;height:38px!important;border-radius:11px!important}
+ .brand h1{font-size:16px}.brand p{font-size:11px;margin:0}
+ .balance-pill{padding:4px 10px;border-radius:10px}.balance-pill .lbl{font-size:10px}.balance-pill .val{font-size:15px}
+ .alerts-btn{width:36px!important;height:36px!important;font-size:16px!important}
+ #syncText{display:none}
+ main{padding:10px 10px calc(84px + env(safe-area-inset-bottom))}
+ h2.section-title{font-size:17px!important;margin-bottom:2px}p.section-sub{font-size:12px;margin-bottom:10px}
+ .card{padding:12px!important;margin-bottom:10px;border-radius:14px}
+ .grid{gap:8px}.grid:has(>.kpi){grid-template-columns:1fr 1fr}
+ .grid>.kpi:last-child:nth-child(odd){grid-column:1/-1}
+ .kpi{padding:10px 12px;border-radius:14px}.kpi .lbl{font-size:11.5px}.kpi .val{font-size:18px;margin-top:2px}
+ .kpi-hero{padding:10px 12px}.kpi-hero .val{font-size:22px}
+ #subTabs{padding:6px 10px;gap:6px}#subTabs button{padding:6px 12px;font-size:12px}
+ #appNav{bottom:calc(6px + env(safe-area-inset-bottom));border-radius:22px;padding:4px}
+ #appNav button{padding:6px 2px;font-size:9.5px}#appNav button .ic{font-size:18px}
+ #fab{width:48px;height:48px;font-size:24px;bottom:calc(74px + env(safe-area-inset-bottom))}
+ .btn{min-height:40px}
+}
 </style>
 </head>
 <body>
@@ -900,7 +924,8 @@ header{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top)}
   <!-- ================= مصروفي (PERSONAL EXPENSES) ================= -->
   <section class="view" id="view-masrofy">
     <h2 class="section-title">👛 مصروفي</h2>
-    <p class="section-sub">مصروفاتي الشخصية اليومية</p>
+    <p class="section-sub">كل مصروف بتضيفه هنا بيتسجل تلقائي في المصروفات (بند "مصروف شخصي") ويتخصم من النقدي</p>
+    <button class="btn btn-outline btn-block" id="personalMigrate" style="display:none;margin-bottom:12px" onclick="migratePersonal()"></button>
 
     <div class="grid grid-2">
       <div class="kpi income"><div class="lbl">مصروف النهاردة</div><div class="val" id="personalKpiToday">0</div></div>
@@ -1522,6 +1547,37 @@ function selectPersonalCategory(id){
 }
 
 /* ---- Add / edit / remove ---- */
+/* ---- مصروفي → المصروفات (تسجيل تلقائي من النقدي) ---- */
+function ensurePersonalMain(cat){
+  let m=data.mainExpenses.find(x=>x.name==='مصروف شخصي');
+  if(!m){ m={id:uid(),name:'مصروف شخصي',subs:[]}; data.mainExpenses.push(m); }
+  let sb=m.subs.find(x=>x.name===cat);
+  if(!sb){ sb={id:uid(),name:cat}; m.subs.push(sb); }
+  return {mainId:m.id, subId:sb.id};
+}
+function personalMemberId(){
+  const m=data.familyMembers.find(x=>/محمد/.test(x.name))||data.familyMembers[0];
+  return m?m.id:'';
+}
+function syncPersonalTx(item){
+  const ids=ensurePersonalMain(item.category);
+  const tx={date:item.date, amount:item.amount, mainId:ids.mainId, subId:ids.subId, account:'cash', memberId:personalMemberId(), note:'مصروفي'+(item.note?' - '+item.note:''), personalId:item.id};
+  const ex=data.expenseTx.find(t=>t.personalId===item.id);
+  if(ex) Object.assign(ex,tx); else data.expenseTx.push(Object.assign({id:uid()},tx));
+}
+function unlinkedPersonal(){ return personalData.items.filter(i=>!data.expenseTx.some(t=>t.personalId===i.id)); }
+function updateMigrateBtn(){
+  const b=document.getElementById('personalMigrate'); if(!b) return;
+  const n=unlinkedPersonal().length;
+  b.style.display=n?'block':'none';
+  b.textContent='🔄 ترحيل '+n+' مصروف قديم لدفتر المصروفات';
+}
+function migratePersonal(){
+  const list=unlinkedPersonal();
+  if(!list.length) return;
+  if(!confirm('هيتسجل '+list.length+' مصروف قديم في المصروفات (من النقدي) وهيتخصموا من الرصيد. متأكد؟')) return;
+  list.forEach(syncPersonalTx); saveData(); renderAll(); showToast('تم الترحيل');
+}
 function addPersonalExpense(){
   const amount = parseFloat(document.getElementById('personalAmountInput').value);
   const dateVal = document.getElementById('personalDateInput').value;
@@ -1538,13 +1594,15 @@ function addPersonalExpense(){
   if(editingPersonalId){
     const item = personalData.items.find(i=>i.id===editingPersonalId);
     Object.assign(item, {amount, date:dateVal, note, category});
+    syncPersonalTx(item);
     cancelEditPersonal();
     showToast('تم حفظ التعديل');
   } else {
-    personalData.items.push({id: uid(), amount, date:dateVal, note, category});
+    { const it={id: uid(), amount, date:dateVal, note, category}; personalData.items.push(it); syncPersonalTx(it); }
     showToast('تمت إضافة المصروف');
   }
   savePersonalData();
+  saveData(); renderAll();
   document.getElementById('personalAmountInput').value='';
   document.getElementById('personalNoteInput').value='';
   document.getElementById('personalCustomCat').value='';
@@ -1576,6 +1634,7 @@ function cancelEditPersonal(){
 function removePersonalExpense(id){
   if(!confirm('حذف هذا المصروف؟')) return;
   personalData.items = personalData.items.filter(i=>i.id!==id);
+  data.expenseTx = data.expenseTx.filter(t=>t.personalId!==id); saveData(); renderAll();
   if(editingPersonalId===id) cancelEditPersonal();
   savePersonalData();
   renderPersonalAll();
@@ -1587,6 +1646,7 @@ function personalCatIcon(cat){
   return found ? found.icon : '🧾';
 }
 function renderPersonalAll(){
+  updateMigrateBtn();
   renderPersonalChips();
 
   const today = localISO();
@@ -3542,7 +3602,7 @@ Object.assign(window, {
   renderBudget, setBudget, fillBudgetFromAvg,
   openPayModal, closePayModal, savePayment, removePayment, renderDebtReport, printDebtReport,
   exportBackup, importBackup, resetAll,
-  setDashPeriod, toggleCatOpen, go, localISO, toggleForm
+  setDashPeriod, toggleCatOpen, go, localISO, toggleForm, migratePersonal
 });
 /* ===== collapsible add-forms on mobile ===== */
 const FORMS={inc:['إضافة إيراد','incAmount'],exp:['إضافة مصروف','expAmount']};
