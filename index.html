@@ -604,6 +604,10 @@ header{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top)}
  #fab{width:48px;height:48px;font-size:24px;bottom:calc(74px + env(safe-area-inset-bottom))}
  .btn{min-height:40px}
 }
+
+header{position:static!important}
+#subTabs{top:0!important;padding:6px 10px!important;align-items:center}
+#subTabs button{line-height:1.2;height:32px;padding:0 14px!important;font-size:12.5px!important;display:flex;align-items:center}
 </style>
 </head>
 <body>
@@ -683,11 +687,13 @@ header{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top)}
       <details class="more-details">
         <summary>تفاصيل إضافية ▾</summary>
         <div class="more-grid">
-          <div>💳 الديون<b id="kpiDebts">0</b></div>
+          <div>💳 ديون افتتاحية<b id="kpiDebts">0</b></div>
           <div>🧮 صافي الرصيد الافتتاحي<b id="kpiOpeningNet">0</b></div>
         </div>
       </details>
     </div>
+
+    <div class="card" onclick="go('debts')" style="cursor:pointer"><h2 class="section-title" style="font-size:16px">🤝 المديونية</h2><div class="grid" style="grid-template-columns:1fr 1fr"><div class="kpi income"><div class="lbl">مستحق لي</div><div class="val" id="dashDebtLena">0</div></div><div class="kpi expense"><div class="lbl">مستحق عليّ</div><div class="val" id="dashDebtAlaya">0</div></div></div><div class="section-sub" id="dashDebtNote" style="margin:8px 0 0"></div></div>
 
     <div class="card"><h2 class="section-title" style="font-size:16px">💡 أهم النصايح دلوقتي</h2><div id="dashAdv"></div><button class="btn btn-outline btn-block" onclick="go('insights')">كل النصايح والتحليل ←</button></div>
 
@@ -1826,7 +1832,19 @@ function removePayment(debtId, paymentId){
   renderDebts();
 }
 
+function renderDashDebts(){
+  const el=document.getElementById('dashDebtLena'); if(!el) return;
+  const rem=d=>Number(d.amount)-Number(d.paidAmount||0), L=data.debts||[], t=localISO();
+  const lena=L.filter(d=>d.type==='lena').reduce((s,d)=>s+Math.max(0,rem(d)),0);
+  const alaya=L.filter(d=>d.type==='alaya').reduce((s,d)=>s+Math.max(0,rem(d)),0);
+  el.textContent=fmt(lena); document.getElementById('dashDebtAlaya').textContent=fmt(alaya);
+  const open=L.filter(d=>rem(d)>0), late=open.filter(d=>d.dueDate&&d.dueDate<t).length;
+  const next=open.filter(d=>d.dueDate&&d.dueDate>=t).sort((a,b)=>a.dueDate.localeCompare(b.dueDate))[0];
+  document.getElementById('dashDebtNote').innerHTML=!open.length?'مفيش مديونيات مفتوحة':
+    open.length+' مديونية مفتوحة'+(late?' · <b style="color:var(--danger)">'+late+' متأخرة</b>':'')+(next?' · أقرب استحقاق: '+escapeHtml(next.person)+' ('+next.dueDate+')':'');
+}
 function renderDebts(){
+  renderDashDebts();
   const today = localISO();
   const remainingOf = d => Number(d.amount) - Number(d.paidAmount||0);
 
@@ -2605,6 +2623,7 @@ function renderDashboard(){
   document.getElementById('splitExpBar').style.width = expPct + '%';
 
   renderInsights();
+  renderDashDebts();
   renderAlerts();
   renderCategoryChart();
   renderMemberChart();
@@ -3576,7 +3595,7 @@ function syncNav(view){
   const sub=document.getElementById('subTabs');
   sub.style.display=g.v.length>1?'flex':'none';
   sub.innerHTML=g.v.map(([id,l])=>`<button class="${id===view?'active':''}" onclick="go('${id}')">${l}</button>`).join('');
-  document.getElementById('fab').style.display=(view==='dashboard'||view==='insights')?'flex':'none';
+  document.getElementById('fab').style.display=view==='insights'?'flex':'none';
   window.scrollTo(0,0);
 }
 document.getElementById('appNav').innerHTML=GROUPS.map(g=>`<button data-g="${g.id}" onclick="go('${g.v[0][0]}')"><span class="ic">${g.ic}</span>${g.t}</button>`).join('');
