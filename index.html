@@ -707,7 +707,7 @@ header{padding-bottom:12px!important}
     </div>
 
     <div class="card scorecard" id="dashScore" onclick="go('rewards')"></div>
-    <div class="card" onclick="go('debts')" style="cursor:pointer"><h2 class="section-title" style="font-size:16px">🤝 المديونية</h2><div class="grid" style="grid-template-columns:1fr 1fr"><div class="kpi income"><div class="lbl">مستحق لي</div><div class="val" id="dashDebtLena">0</div></div><div class="kpi expense"><div class="lbl">مستحق عليّ</div><div class="val" id="dashDebtAlaya">0</div></div></div><div class="section-sub" id="dashDebtNote" style="margin:8px 0 0"></div></div>
+    <div class="card" onclick="go('debts')" style="cursor:pointer"><h2 class="section-title" style="font-size:16px">🤝 المديونية</h2><div class="grid" style="grid-template-columns:1fr 1fr"><div class="kpi income"><div class="lbl">مستحق لي</div><div class="val" id="dashDebtLena">0</div></div><div class="kpi expense"><div class="lbl">مستحق عليّ</div><div class="val" id="dashDebtAlaya">0</div></div></div><div class="section-sub" id="dashDebtNote" style="margin:8px 0 0"></div><div class="section-sub" id="dashDebtNet" style="margin:4px 0 0;font-weight:700"></div></div>
 
     <div class="card"><h2 class="section-title" style="font-size:16px">💡 أهم النصايح دلوقتي</h2><div id="dashAdv"></div><button class="btn btn-outline btn-block" onclick="go('insights')">كل النصايح والتحليل ←</button></div>
 
@@ -1325,6 +1325,20 @@ header{padding-bottom:12px!important}
     </div>
   </div>
 </div>
+<div class="modal-back" id="rollModal" style="display:none" onclick="if(event.target===this)closeRollModal()">
+  <div class="modal-box">
+    <h3 id="rollTitle">📤 ترحيل للمصروفات</h3>
+    <div class="modal-info" id="rollInfo"></div>
+    <div class="field"><label>مصروف رئيسي (مثال: أقساط)</label><select id="rlMain" onchange="populateRollSub()"></select></div>
+    <div class="field"><label>مصروف فرعي</label><select id="rlSub"></select></div>
+    <div class="field"><label>المبلغ المرحّل</label><input type="number" id="rlAmount" inputmode="decimal"></div>
+    <div class="field"><label>التاريخ</label><input type="date" id="rlDate"></div>
+    <div class="field"><label>يتخصم من</label><select id="rlAccount"><option value="cash">💵 نقدي</option><option value="bank">🏦 بنك</option><option value="savings">🎯 ادخار</option></select></div>
+    <div class="field"><label>المسؤول</label><select id="rlMember"></select></div>
+    <div class="field"><label>ملاحظة</label><input type="text" id="rlNote"></div>
+    <div class="btn-group"><button class="btn btn-primary" onclick="saveRoll()">📤 ترحيل</button><button class="btn btn-secondary" onclick="closeRollModal()">تخطي</button></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <button id="fab" onclick="go('expense',true)" aria-label="إضافة مصروف">＋</button>
 <div id="appNav"></div>
@@ -1758,7 +1772,8 @@ function addDebt(){
     cancelEditDebt();
     showToast('تم حفظ التعديل');
   } else {
-    data.debts.push({id: uid(), person, type:selectedDebtType, amount, paidAmount:0, payments:[], date, dueDate, note});
+    const nd={id: uid(), person, type:selectedDebtType, amount, paidAmount:0, payments:[], date, dueDate, note};
+    data.debts.push(nd); _rollNew=nd.id;
     showToast('تمت إضافة المديونية');
   }
   saveData();
@@ -1767,6 +1782,7 @@ function addDebt(){
   document.getElementById('debtDueDate').value='';
   document.getElementById('debtNote').value='';
   renderDebts();
+  if(_rollNew){ const i=_rollNew; _rollNew=null; openRollModal(i); }
 }
 
 function editDebt(id){
@@ -1796,6 +1812,7 @@ function cancelEditDebt(){
 function removeDebt(id){
   if(!confirm('حذف هذه المديونية نهائيًا؟')) return;
   data.debts = data.debts.filter(x=>x.id!==id);
+  data.expenseTx = data.expenseTx.filter(t=>t.debtId!==id);
   if(editingDebtId===id) cancelEditDebt();
   saveData();
   renderDebts();
@@ -1861,10 +1878,49 @@ function renderDashDebts(){
   const lena=L.filter(d=>d.type==='lena').reduce((s,d)=>s+Math.max(0,rem(d)),0);
   const alaya=L.filter(d=>d.type==='alaya').reduce((s,d)=>s+Math.max(0,rem(d)),0);
   el.textContent=fmt(lena); document.getElementById('dashDebtAlaya').textContent=fmt(alaya);
+  { const T=totals(), liq=T.byAccount.cash+T.byAccount.bank+T.byAccount.savings; document.getElementById('dashDebtNet').textContent='صافي رصيدك بعد الديون: '+fmt(liq+lena-alaya); }
   const open=L.filter(d=>rem(d)>0), late=open.filter(d=>d.dueDate&&d.dueDate<t).length;
   const next=open.filter(d=>d.dueDate&&d.dueDate>=t).sort((a,b)=>a.dueDate.localeCompare(b.dueDate))[0];
   document.getElementById('dashDebtNote').innerHTML=!open.length?'مفيش مديونيات مفتوحة':
     open.length+' مديونية مفتوحة'+(late?' · <b style="color:var(--danger)">'+late+' متأخرة</b>':'')+(next?' · أقرب استحقاق: '+escapeHtml(next.person)+' ('+next.dueDate+')':'');
+}
+/* ---- ترحيل المديونية للمصروفات ---- */
+let _rollNew=null, rollDebtId=null;
+function openRollModal(id){
+  const d=data.debts.find(x=>x.id===id); if(!d) return;
+  rollDebtId=id; const ex=data.expenseTx.find(t=>t.debtId===id);
+  document.getElementById('rollInfo').textContent=(d.type==='alaya'?'مديونية عليّ: ':'مديونية لي: ')+d.person+' · '+fmt(d.amount)+' — اختار بند المصروف (قسط مثلًا) وبيتسجل في المصروفات وبيتخصم من الحساب';
+  const mainSel=document.getElementById('rlMain');
+  mainSel.innerHTML=data.mainExpenses.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+  if(ex) mainSel.value=ex.mainId;
+  populateRollSub(); if(ex) document.getElementById('rlSub').value=ex.subId;
+  document.getElementById('rlAmount').value=ex?ex.amount:d.amount;
+  document.getElementById('rlDate').value=ex?ex.date:(d.date||localISO());
+  document.getElementById('rlAccount').value=ex?ex.account:'cash';
+  document.getElementById('rlMember').innerHTML=data.familyMembers.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+  if(ex&&ex.memberId) document.getElementById('rlMember').value=ex.memberId;
+  document.getElementById('rlNote').value=ex?ex.note:(d.type==='alaya'?'قسط/سداد: ':'سلفة: ')+d.person;
+  document.getElementById('rollModal').style.display='flex';
+}
+function populateRollSub(){
+  const m=data.mainExpenses.find(x=>x.id===document.getElementById('rlMain').value);
+  document.getElementById('rlSub').innerHTML=(m?m.subs:[]).map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
+}
+function closeRollModal(){ document.getElementById('rollModal').style.display='none'; rollDebtId=null; }
+function saveRoll(){
+  const d=data.debts.find(x=>x.id===rollDebtId); if(!d) return closeRollModal();
+  const amount=parseFloat(document.getElementById('rlAmount').value), date=document.getElementById('rlDate').value;
+  const mainId=document.getElementById('rlMain').value, subId=document.getElementById('rlSub').value;
+  if(!amount||amount<=0){ showToast('أدخل مبلغ صحيح'); return; }
+  if(!date||!mainId||!subId){ showToast('اختار التاريخ والبند الرئيسي والفرعي'); return; }
+  const tx={date,amount,mainId,subId,account:document.getElementById('rlAccount').value,memberId:document.getElementById('rlMember').value,note:document.getElementById('rlNote').value.trim(),debtId:d.id};
+  const ex=data.expenseTx.find(t=>t.debtId===d.id);
+  if(ex) Object.assign(ex,tx); else data.expenseTx.push(Object.assign({id:uid()},tx));
+  saveData(); closeRollModal(); renderAll(); showToast('تم الترحيل للمصروفات ✅');
+}
+function unrollDebt(id){
+  if(!confirm('إلغاء الترحيل؟ هيتشال المصروف المرتبط بالمديونية دي.')) return;
+  data.expenseTx=data.expenseTx.filter(t=>t.debtId!==id); saveData(); renderAll(); showToast('تم إلغاء الترحيل');
 }
 function renderDebts(){
   renderDashDebts();
@@ -1916,6 +1972,7 @@ function renderDebts(){
       ${paysHtml}
       <div class="debt-actions">
         ${!isDone ? `<button class="btn btn-outline btn-sm" onclick="settleDebt('${d.id}')">تسديد دفعة</button>` : ''}
+        ${data.expenseTx.some(t=>t.debtId===d.id)?`<button class="btn btn-outline btn-sm" onclick="unrollDebt('${d.id}')">✅ مترحّل (إلغاء)</button>`:`<button class="btn btn-outline btn-sm" onclick="openRollModal('${d.id}')">📤 ترحيل للمصروفات</button>`}
         <button class="btn btn-outline btn-sm" onclick="editDebt('${d.id}')">تعديل</button>
         <button class="btn btn-danger btn-sm" onclick="removeDebt('${d.id}')">حذف</button>
       </div>
@@ -3696,7 +3753,7 @@ Object.assign(window, {
   renderBudget, setBudget, fillBudgetFromAvg,
   openPayModal, closePayModal, savePayment, removePayment, renderDebtReport, printDebtReport,
   exportBackup, importBackup, resetAll,
-  setDashPeriod, toggleCatOpen, go, localISO, toggleForm, migratePersonal
+  setDashPeriod, toggleCatOpen, go, localISO, toggleForm, migratePersonal, openRollModal, populateRollSub, closeRollModal, saveRoll, unrollDebt
 });
 /* ===== collapsible add-forms on mobile ===== */
 const FORMS={inc:['إضافة إيراد','incAmount'],exp:['إضافة مصروف','expAmount']};
