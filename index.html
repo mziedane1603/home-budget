@@ -697,10 +697,11 @@ header{padding-bottom:12px!important}
         <div><div class="sum-lbl">⚖️ الصافي</div><div class="sum-val" id="kpiNet">0</div></div>
       </div>
       <div class="split-bar"><div class="inc" id="splitIncBar"></div><div class="exp" id="splitExpBar"></div></div>
-      <details class="more-details">
+      <details class="more-details" open>
         <summary>تفاصيل إضافية ▾</summary>
         <div class="more-grid">
-          <div>💳 ديون افتتاحية<b id="kpiDebts">0</b></div>
+          <div>💳 الديون عليّ<b id="kpiDebts">0</b></div>
+          <div>🤝 مستحق لي<b id="kpiLena">0</b></div>
           <div>🧮 صافي الرصيد الافتتاحي<b id="kpiOpeningNet">0</b></div>
         </div>
       </details>
@@ -1877,6 +1878,7 @@ function renderDashDebts(){
   const rem=d=>Number(d.amount)-Number(d.paidAmount||0), L=data.debts||[], t=localISO();
   const lena=L.filter(d=>d.type==='lena').reduce((s,d)=>s+Math.max(0,rem(d)),0);
   const alaya=L.filter(d=>d.type==='alaya').reduce((s,d)=>s+Math.max(0,rem(d)),0);
+  { const od=totals().openingDebts; document.getElementById('kpiDebts').textContent=fmt(alaya+od); document.getElementById('kpiLena').textContent=fmt(lena); }
   el.textContent=fmt(lena); document.getElementById('dashDebtAlaya').textContent=fmt(alaya);
   { const T=totals(), liq=T.byAccount.cash+T.byAccount.bank+T.byAccount.savings; document.getElementById('dashDebtNet').textContent='صافي رصيدك بعد الديون: '+fmt(liq+lena-alaya); }
   const open=L.filter(d=>rem(d)>0), late=open.filter(d=>d.dueDate&&d.dueDate<t).length;
